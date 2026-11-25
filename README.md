@@ -23,6 +23,7 @@ kind --version
 kubectl version --client
 git --version
 ```
+<img width="1920" height="1080" alt="Screenshot (444)" src="https://github.com/user-attachments/assets/a09b69d9-91ec-4f12-a9e9-7a1f44a70882" />
 
 ## Environment
 
@@ -72,6 +73,8 @@ k8s-network-troubleshooting/
 kind create cluster --name demo-cluster
 kubectl get nodes
 ```
+<img width="1920" height="1080" alt="Screenshot (445)" src="https://github.com/user-attachments/assets/9b2eb78a-5431-4b89-b2a5-f05b4b32f956" />
+
 The node shows `Ready`.
 
 **2. Apply the files**
@@ -81,11 +84,14 @@ kubectl apply -f manifests/backend.yaml
 kubectl apply -f manifests/frontend.yaml
 kubectl apply -f manifests/client.yaml
 ```
+<img width="1920" height="1080" alt="Screenshot (446)" src="https://github.com/user-attachments/assets/b0a22947-02ec-477a-8dd9-dec377de8dc5" />
 
 **3. Check that the pods are running**
 ```bash
 kubectl get pods -n test-ns -o wide
 ```
+<img width="1920" height="1080" alt="Screenshot (447)" src="https://github.com/user-attachments/assets/e50f91a5-08c5-473b-9a2b-61231414ca69" />
+
 All pods show `Running`.
 
 ## Baseline: everything works
@@ -94,19 +100,17 @@ All pods show `Running`.
 ```bash
 kubectl exec -n test-ns client -- curl -s http://frontend
 ```
+<img width="1920" height="1080" alt="Screenshot (448)" src="https://github.com/user-attachments/assets/b4b64ba9-af96-430d-82ce-bf298ab0949f" />
+
 Result: the nginx welcome page.
 
 **frontend → backend** (run from inside the frontend pod)
 ```bash
 kubectl exec -n test-ns deploy/frontend-deployment -- wget -S -O /dev/null http://backend/testapp
 ```
-Result: `HTTP/1.1 200` from `Apache TomEE`. The connection works.
+<img width="1920" height="1080" alt="Screenshot (449)" src="https://github.com/user-attachments/assets/cd512d78-800e-476c-872a-23e60941c88b" />
 
-**Endpoints**
-```bash
-kubectl get endpoints backend -n test-ns
-```
-Result: the backend pods with port `8080`.
+Result: `HTTP/1.1 200` from `Apache TomEE`. The connection works.
 
 ## Create the problem
 
@@ -115,6 +119,7 @@ I apply a second version of the backend Service. It changes only one value: `tar
 ```bash
 kubectl apply -f manifests/backend-service-update.yaml
 ```
+<img width="1920" height="1080" alt="Screenshot (451)" src="https://github.com/user-attachments/assets/6dcbb74a-ff88-42c8-9d71-a1ca467eb54c" />
 
 ## Symptom
 
@@ -133,6 +138,7 @@ The first command works. The second fails:
 ```
 wget: can't connect to remote host: Connection refused
 ```
+<img width="1920" height="1080" alt="Screenshot (452)" src="https://github.com/user-attachments/assets/6aa2ef77-17ae-43d5-9101-fd42e0d83dda" />
 
 "Connection refused" means the request reached the address, but nothing is listening on that port. This points to a wrong port, not to DNS.
 
@@ -144,11 +150,14 @@ wget: can't connect to remote host: Connection refused
 ```bash
 kubectl get pods -n test-ns -o wide
 ```
+<img width="1920" height="1080" alt="Screenshot (452)" src="https://github.com/user-attachments/assets/1bcb8dfd-4308-4499-a11b-e1f467a9ac7d" />
 
 **2. Does DNS work from the frontend pod?**
 ```bash
 kubectl exec -n test-ns deploy/frontend-deployment -- nslookup backend.test-ns.svc.cluster.local.
 ```
+<img width="1920" height="1080" alt="Screenshot (453)" src="https://github.com/user-attachments/assets/e40859d7-4181-4774-9758-0f29b886f2aa" />
+
 **3. Is the pod reachable directly?** (copy a backend pod IP from command 1, replace `<POD_IP>`)
 ```bash
 kubectl exec -n test-ns client -- curl -s -o /dev/null -w "%{http_code}\n" http://<POD_IP>:8080/testapp/
@@ -168,11 +177,13 @@ kubectl get svc -n test-ns
 ```bash
 kubectl get endpoints backend -n test-ns
 ```
+<img width="1920" height="1080" alt="Screenshot (455)" src="https://github.com/user-attachments/assets/b288ac29-6a95-4fcc-9684-8997b5249ad1" />
 
 **5. Which port does the application listen on?**
 ```bash
 kubectl logs -n test-ns deploy/backend-deployment --tail=3
 ```
+<img width="1920" height="1080" alt="Screenshot (456)" src="https://github.com/user-attachments/assets/6cf1bf81-d572-4896-ad05-74045a9b25c8" />
 
 **6. Is a NetworkPolicy blocking traffic?**
 ```bash
@@ -233,6 +244,8 @@ Result: `HTTP/1.1 200` from `Apache TomEE`.
 kubectl exec -n test-ns client -- curl -s -o /dev/null -w "%{http_code}\n" http://frontend
 ```
 Result: `200`.
+
+<img width="1920" height="1080" alt="Screenshot (459)" src="https://github.com/user-attachments/assets/05633d77-4003-40df-8afa-4d15cccf8fd0" />
 
 | Check | Before the fix | After the fix |
 |-------|----------------|---------------|
